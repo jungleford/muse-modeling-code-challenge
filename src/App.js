@@ -1,7 +1,5 @@
 import { dia, shapes } from '@joint/core';
 
-import './App.css';
-
 const namespace = shapes;
 const graph = new dia.Graph({}, { cellNamespace: namespace });
 
@@ -30,6 +28,7 @@ const paper = new dia.Paper({
 });
 
 const port = {
+  group: 'edge',
   id: 'port0',
   label: {
     position: {
@@ -40,7 +39,7 @@ const port = {
       selector: 'label',
       attributes: {
         'pointer-events': 'none',
-        'cursor': 'nwse-resize',
+        'cursor': 'default',
       },
     }],
   },
@@ -69,10 +68,32 @@ paper.on('element:resize:pointerdown', (elementView, event) => {
   const startY = event.clientY;
 
   const onMouseMove = (e) => {
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
+    const { x, y } = element.position();
+    const [ elementTopLeftX, elementTopLeftY ] = [ x, y ];
+    const { clientX, clientY } = e;
 
-    const newWidth = Math.min(400, portPosition.width + Math.max(dx, dy));
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+
+    let dWidth = 0;
+    if (
+      dx > 0 && dy > 0 && startX > elementTopLeftX + 8 ||
+      dx < 0 && dy < 0 && startX < elementTopLeftX + 8 ||
+      dx > 0 && dy < 0 && startX > elementTopLeftX + 8 ||
+      dx < 0 && dy > 0 && startX < elementTopLeftX + 8
+    ) {
+      dWidth = Math.max(Math.abs(dx), Math.abs(dy));
+    }
+    if (
+      dx > 0 && dy > 0 && startX < elementTopLeftX + 8 ||
+      dx < 0 && dy < 0 && startX > elementTopLeftX + 8 ||
+      dx > 0 && dy < 0 && startX < elementTopLeftX + 8 ||
+      dx < 0 && dy > 0 && startX > elementTopLeftX + 8
+    ) {
+      dWidth = -Math.max(Math.abs(dx), Math.abs(dy));
+    }
+
+    const newWidth = Math.min(400, Math.max(portPosition.width + dWidth, 16));
 
     element.portProp('port0', 'attrs/portBody/width', newWidth);
     element.portProp('port0', 'attrs/portBody/height', newWidth);
@@ -109,8 +130,19 @@ const model = new shapes.standard.Rectangle({
       fill: '#8ECAE6',
     },
   },
+  ports: {
+    groups: {
+      edge: {
+        position: {
+          name: 'left',
+          args: { dx: 0 },
+        },
+      },
+    },
+    items: [port] // add a port in constructor
+  }
 });
 
-model.addPort(port); // add a port using Port API
+//model.addPort(port); // add a port using Port API
 
 graph.addCell(model);
