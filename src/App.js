@@ -172,19 +172,82 @@ paper.on('element:port1:pointerdown', (elementView, event) => {
   const startY = event.clientY;
 
   const onMouseMove = (e) => {
-    const { x, y } = element.position();
-    const { width, height }= element.size();
-    const [ elementTopLeftX, elementTopLeftY ] = [ x, y ];
-    const [ elementTopRightX, elementTopRightY ] = [ x + width, y ];
-    const [ elementBottomRightX, elementBottomRightY ] = [ x + width, y + height ];
-    const [ elementBottomLeftX, elementBottomLeftY ] = [ x, y + height ];
     const { clientX, clientY } = e;
 
     const dx = clientX - startX;
     const dy = clientY - startY;
 
-    element.prop('ports/groups/top-edge/position/args', { dx: Math.min(halfSquareWidth, Math.max(-halfSquareWidth, dx)) });
-    // element.prop('ports/groups/top-edge/position/args', { dy: Math.min(halfSquareWidth, Math.max(-halfSquareWidth, dy)) });
+    const edge = element.prop('ports/groups/top-edge/position/name');
+    if (edge === 'top' || edge === 'bottom') {
+      element.prop('ports/groups/top-edge/position/args', { dx: Math.min(halfSquareWidth, Math.max(-halfSquareWidth, dx)) });
+      if (dx >= halfSquareWidth) {
+        if (edge === 'top' && dy > 0) {
+          element.prop('ports/groups/top-edge/position/name', 'right');
+          element.prop('ports/groups/top-edge/position/args', {
+            dx: 0,
+            dy: Math.min(halfSquareWidth, -halfSquareWidth + dy),
+          });
+        }
+        if (edge === 'bottom' && dy < 0) {
+          element.prop('ports/groups/top-edge/position/name', 'right');
+          element.prop('ports/groups/top-edge/position/args', {
+            dx: 0,
+            dy: Math.max(-halfSquareWidth, halfSquareWidth + dy),
+          });
+        }
+      }
+      if (dx <= -halfSquareWidth) {
+        if (edge === 'top' && dy > 0) {
+          element.prop('ports/groups/top-edge/position/name', 'left');
+          element.prop('ports/groups/top-edge/position/args', {
+            dx: 0,
+            dy: Math.min(halfSquareWidth, -halfSquareWidth + dy),
+          });
+        }
+        if (edge === 'bottom' && dy < 0) {
+          element.prop('ports/groups/top-edge/position/name', 'left');
+          element.prop('ports/groups/top-edge/position/args', {
+            dx: 0,
+            dy: Math.max(-halfSquareWidth, halfSquareWidth + dy),
+          });
+        }
+      }
+    }
+    if (edge === 'left' || edge === 'right') {
+      element.prop('ports/groups/top-edge/position/args', { dy: Math.min(halfSquareWidth, Math.max(-halfSquareWidth, dy)) });
+      if (dy >= halfSquareWidth) {
+        if (edge === 'left' && dx > 0) {
+          element.prop('ports/groups/top-edge/position/name', 'bottom');
+          element.prop('ports/groups/top-edge/position/args', {
+            dx: Math.min(halfSquareWidth, -halfSquareWidth + dx),
+            dy: 0,
+          });
+        }
+        if (edge === 'right' && dx < 0) {
+          element.prop('ports/groups/top-edge/position/name', 'bottom');
+          element.prop('ports/groups/top-edge/position/args', {
+            dx: Math.max(-halfSquareWidth, halfSquareWidth + dx),
+            dy: 0,
+          });
+        }
+      }
+      if (dy <= -halfSquareWidth) {
+        if (edge === 'left' && dx > 0) {
+          element.prop('ports/groups/top-edge/position/name', 'top');
+          element.prop('ports/groups/top-edge/position/args', {
+            dx: Math.min(halfSquareWidth, -halfSquareWidth + dx),
+            dy: 0,
+          });
+        }
+        if (edge === 'right' && dx < 0) {
+          element.prop('ports/groups/top-edge/position/name', 'top');
+          element.prop('ports/groups/top-edge/position/args', {
+            dx: Math.max(-halfSquareWidth, halfSquareWidth + dx),
+            dy: 0,
+          });
+        }
+      }
+    }
   };
 
   const onMouseUp = () => {
