@@ -3,20 +3,6 @@ import { dia, shapes } from '@joint/core';
 const namespace = shapes;
 const graph = new dia.Graph({}, { cellNamespace: namespace });
 
-const minPortWidth = 16;
-const portPosition = {
-  width: minPortWidth,
-  height: minPortWidth,
-  x: - minPortWidth / 2,
-  y: - minPortWidth / 2,
-};
-const newPosition = {
-  width: minPortWidth,
-  height: minPortWidth,
-  x: - minPortWidth / 2,
-  y: - minPortWidth / 2,
-};
-
 const paper = new dia.Paper({
   el: document.getElementById('paper'),
   width: 1280,
@@ -28,7 +14,26 @@ const paper = new dia.Paper({
   linkPinning: false, // Prevent link being dropped in blank paper area
 });
 
-const port = {
+const squareWidth = 480;
+const halfSquareWidth = squareWidth / 2;
+const minPortWidth = 16;
+const maxPortWidth = 400;
+const margin = minPortWidth / 2;
+
+const port0Position = {
+  width: minPortWidth,
+  height: minPortWidth,
+  x: - minPortWidth / 2,
+  y: - minPortWidth / 2,
+};
+const new0Position = {
+  width: minPortWidth,
+  height: minPortWidth,
+  x: - minPortWidth / 2,
+  y: - minPortWidth / 2,
+};
+
+const port0 = {
   group: 'left-edge',
   id: 'port0',
   label: {
@@ -46,15 +51,16 @@ const port = {
   },
   attrs: {
     portBody: {
-      event: 'element:resize:pointerdown',
-      width: portPosition.width,
-      height: portPosition.height,
-      x: portPosition.x,
-      y: portPosition.y,
+      event: 'element:port0:pointerdown',
+      width: port0Position.width,
+      height: port0Position.height,
+      x: port0Position.x,
+      y: port0Position.y,
       fill: '#03071E',
     },
     label: {
-      text: 'port',
+      text: 'resize',
+      fill: '#03071E',
     },
   },
   markup: [{
@@ -63,7 +69,7 @@ const port = {
   }]
 };
 
-paper.on('element:resize:pointerdown', (elementView, event) => {
+paper.on('element:port0:pointerdown', (elementView, event) => {
   const element = elementView.model;
   const startX = event.clientX;
   const startY = event.clientY;
@@ -77,7 +83,6 @@ paper.on('element:resize:pointerdown', (elementView, event) => {
     const dy = clientY - startY;
 
     let dWidth = 0;
-    const margin = minPortWidth / 2;
     if (
       dx > 0 && dy > 0 && startX > elementTopLeftX + margin ||
       dx < 0 && dy < 0 && startX < elementTopLeftX + margin ||
@@ -95,25 +100,94 @@ paper.on('element:resize:pointerdown', (elementView, event) => {
       dWidth = -Math.max(Math.abs(dx), Math.abs(dy));
     }
 
-    const newWidth = Math.min(400, Math.max(portPosition.width + dWidth, 16));
+    const newWidth = Math.min(maxPortWidth, Math.max(port0Position.width + dWidth, 16));
 
     element.portProp('port0', 'attrs/portBody/width', newWidth);
     element.portProp('port0', 'attrs/portBody/height', newWidth);
     element.portProp('port0', 'attrs/portBody/x', - newWidth / 2);
     element.portProp('port0', 'attrs/portBody/y', - newWidth / 2);
 
-    newPosition.width = newWidth;
-    newPosition.height = newWidth;
-    newPosition.x = - newWidth / 2;
-    newPosition.y = - newWidth / 2;
+    new0Position.width = newWidth;
+    new0Position.height = newWidth;
+    new0Position.x = - newWidth / 2;
+    new0Position.y = - newWidth / 2;
   };
 
   const onMouseUp = () => {
-    portPosition.width = newPosition.width;
-    portPosition.height = newPosition.height;
-    portPosition.x = newPosition.x;
-    portPosition.y = newPosition.y;
+    port0Position.width = new0Position.width;
+    port0Position.height = new0Position.height;
+    port0Position.x = new0Position.x;
+    port0Position.y = new0Position.y;
 
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  };
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+
+  event.stopPropagation();
+});
+
+
+const port1 = {
+  group: 'top-edge',
+  id: 'port1',
+  label: {
+    position: {
+      name: 'top'
+    },
+    markup: [{
+      tagName: 'text',
+      selector: 'label',
+      attributes: {
+        'pointer-events': 'none',
+        'cursor': 'default',
+      },
+    }],
+  },
+  attrs: {
+    portBody: {
+      event: 'element:port1:pointerdown',
+      width: port0Position.width,
+      height: port0Position.height,
+      x: port0Position.x,
+      y: port0Position.y,
+      fill: '#FF5733',
+    },
+    label: {
+      text: 'drag',
+      fill: '#FF5733',
+    },
+  },
+  markup: [{
+    tagName: 'rect',
+    selector: 'portBody',
+  }]
+};
+
+paper.on('element:port1:pointerdown', (elementView, event) => {
+  const element = elementView.model;
+  const startX = event.clientX;
+  const startY = event.clientY;
+
+  const onMouseMove = (e) => {
+    const { x, y } = element.position();
+    const { width, height }= element.size();
+    const [ elementTopLeftX, elementTopLeftY ] = [ x, y ];
+    const [ elementTopRightX, elementTopRightY ] = [ x + width, y ];
+    const [ elementBottomRightX, elementBottomRightY ] = [ x + width, y + height ];
+    const [ elementBottomLeftX, elementBottomLeftY ] = [ x, y + height ];
+    const { clientX, clientY } = e;
+
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+
+    element.prop('ports/groups/top-edge/position/args', { dx: Math.min(halfSquareWidth, Math.max(-halfSquareWidth, dx)) });
+    // element.prop('ports/groups/top-edge/position/args', { dy: Math.min(halfSquareWidth, Math.max(-halfSquareWidth, dy)) });
+  };
+
+  const onMouseUp = () => {
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
   };
@@ -126,7 +200,7 @@ paper.on('element:resize:pointerdown', (elementView, event) => {
 
 const model = new shapes.standard.Rectangle({
   position: { x: 400, y: 160 },
-  size: { width: 480, height: 480 },
+  size: { width: squareWidth, height: squareWidth },
   attrs: {
     body: {
       fill: '#8ECAE6',
@@ -140,11 +214,15 @@ const model = new shapes.standard.Rectangle({
           args: { dx: 0 },
         },
       },
+      'top-edge': {
+        position: {
+          name: 'top',
+          args: { dy: 0 },
+        },
+      },
     },
-    items: [port] // add a port in constructor
+    items: [port0, port1] // add a port in constructor
   }
 });
-
-//model.addPort(port); // add a port using Port API
 
 graph.addCell(model);
