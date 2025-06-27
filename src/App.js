@@ -3,17 +3,18 @@ import { dia, shapes } from '@joint/core';
 const namespace = shapes;
 const graph = new dia.Graph({}, { cellNamespace: namespace });
 
+const minPortWidth = 16;
 const portPosition = {
-  width: 16,
-  height: 16,
-  x: -8,
-  y: -8,
+  width: minPortWidth,
+  height: minPortWidth,
+  x: - minPortWidth / 2,
+  y: - minPortWidth / 2,
 };
 const newPosition = {
-  width: 16,
-  height: 16,
-  x: -8,
-  y: -8,
+  width: minPortWidth,
+  height: minPortWidth,
+  x: - minPortWidth / 2,
+  y: - minPortWidth / 2,
 };
 
 const paper = new dia.Paper({
@@ -28,7 +29,7 @@ const paper = new dia.Paper({
 });
 
 const port = {
-  group: 'edge',
+  group: 'left-edge',
   id: 'port0',
   label: {
     position: {
@@ -76,19 +77,20 @@ paper.on('element:resize:pointerdown', (elementView, event) => {
     const dy = clientY - startY;
 
     let dWidth = 0;
+    const margin = minPortWidth / 2;
     if (
-      dx > 0 && dy > 0 && startX > elementTopLeftX + 8 ||
-      dx < 0 && dy < 0 && startX < elementTopLeftX + 8 ||
-      dx > 0 && dy < 0 && startX > elementTopLeftX + 8 ||
-      dx < 0 && dy > 0 && startX < elementTopLeftX + 8
+      dx > 0 && dy > 0 && startX > elementTopLeftX + margin ||
+      dx < 0 && dy < 0 && startX < elementTopLeftX + margin ||
+      dx > 0 && dy < 0 && startX > elementTopLeftX + margin ||
+      dx < 0 && dy > 0 && startX < elementTopLeftX + margin
     ) {
       dWidth = Math.max(Math.abs(dx), Math.abs(dy));
     }
     if (
-      dx > 0 && dy > 0 && startX < elementTopLeftX + 8 ||
-      dx < 0 && dy < 0 && startX > elementTopLeftX + 8 ||
-      dx > 0 && dy < 0 && startX < elementTopLeftX + 8 ||
-      dx < 0 && dy > 0 && startX > elementTopLeftX + 8
+      dx > 0 && dy > 0 && startX < elementTopLeftX + margin ||
+      dx < 0 && dy < 0 && startX > elementTopLeftX + margin ||
+      dx > 0 && dy < 0 && startX < elementTopLeftX + margin ||
+      dx < 0 && dy > 0 && startX > elementTopLeftX + margin
     ) {
       dWidth = -Math.max(Math.abs(dx), Math.abs(dy));
     }
@@ -132,7 +134,7 @@ const model = new shapes.standard.Rectangle({
   },
   ports: {
     groups: {
-      edge: {
+      'left-edge': {
         position: {
           name: 'left',
           args: { dx: 0 },
