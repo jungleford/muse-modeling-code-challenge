@@ -24,3 +24,13 @@ pnpm run dev
 ```
 
 Then open your browser and access http://localhost:5173/
+
+## Screenshots
+
+### Resize
+
+<img src="https://raw.githubusercontent.com/jungleford/muse-modeling-code-challenge/refs/heads/main/resize.gif" style="width: 800px;" alt="" />
+
+### Drag and Move
+
+<img src="https://raw.githubusercontent.com/jungleford/muse-modeling-code-challenge/refs/heads/main/move.gif" style="width: 800px;" alt="" />
