@@ -166,6 +166,7 @@ const port1 = {
   }]
 };
 
+let lastPortPosition = { x: halfSquareWidth, y: 0 };
 paper.on('element:port1:pointerdown', (elementView, event) => {
   const element = elementView.model;
   const startX = event.clientX;
@@ -176,81 +177,132 @@ paper.on('element:port1:pointerdown', (elementView, event) => {
 
     const dx = clientX - startX;
     const dy = clientY - startY;
+    console.log(`dx: ${dx}, dy: ${dy}`);
 
     const edge = element.prop('ports/groups/top-edge/position/name');
-    if (edge === 'top' || edge === 'bottom') {
-      element.prop('ports/groups/top-edge/position/args', { dx: Math.min(halfSquareWidth, Math.max(-halfSquareWidth, dx)) });
-      if (dx >= halfSquareWidth) {
-        if (edge === 'top' && dy > 0) {
-          element.prop('ports/groups/top-edge/position/name', 'right');
-          element.prop('ports/groups/top-edge/position/args', {
-            dx: 0,
-            dy: Math.min(halfSquareWidth, -halfSquareWidth + dy),
-          });
+
+    if (edge === 'top') {
+      // when the port is on the top edge
+      let x = lastPortPosition.x + dx,
+          y = 0;
+      if (x > 0 && x < squareWidth) {
+        // move on the top edge
+        console.log(`top: (${x}, ${y})`);
+        element.prop('ports/groups/top-edge/position/args', { x, y });
+      } else if (x >= squareWidth && dy > 0) {
+        // turning point: from the top edge to the right edge
+        x = squareWidth;
+        y += dy;
+        console.log(`right: (${x}, ${y})`);
+        if (y >= squareWidth) {
+          y = squareWidth;
         }
-        if (edge === 'bottom' && dy < 0) {
-          element.prop('ports/groups/top-edge/position/name', 'right');
-          element.prop('ports/groups/top-edge/position/args', {
-            dx: 0,
-            dy: Math.max(-halfSquareWidth, halfSquareWidth + dy),
-          });
+        element.prop('ports/groups/top-edge/position/name', 'right');
+        element.prop('ports/groups/top-edge/position/args', { x, y });
+      } else if (x <= 0 && dy > 0) {
+        // turning point: from the top edge to the left edge
+        x = 0;
+        y += dy;
+        console.log(`left: (${x}, ${y})`);
+        if (y >= squareWidth) {
+          y = squareWidth;
         }
+        element.prop('ports/groups/top-edge/position/name', 'left');
+        element.prop('ports/groups/top-edge/position/args', { x, y });
       }
-      if (dx <= -halfSquareWidth) {
-        if (edge === 'top' && dy > 0) {
-          element.prop('ports/groups/top-edge/position/name', 'left');
-          element.prop('ports/groups/top-edge/position/args', {
-            dx: 0,
-            dy: Math.min(halfSquareWidth, -halfSquareWidth + dy),
-          });
+    } else if (edge === 'right') {
+      // when the port is on the right edge
+      let x = squareWidth,
+          y = lastPortPosition.y + dy;
+      if (y > 0 && y < squareWidth) {
+        // move on the right edge
+        console.log(`right: (${x}, ${y})`);
+        element.prop('ports/groups/top-edge/position/args', { x, y });
+      } else if (y >= squareWidth && dx < squareWidth - lastPortPosition.x) {
+        // turning point: from the right edge to the bottom edge
+        y = squareWidth;
+        x -= dx;
+        console.log(`bottom: (${x}, ${y})`);
+        if (x >= squareWidth) {
+          x = squareWidth;
         }
-        if (edge === 'bottom' && dy < 0) {
-          element.prop('ports/groups/top-edge/position/name', 'left');
-          element.prop('ports/groups/top-edge/position/args', {
-            dx: 0,
-            dy: Math.max(-halfSquareWidth, halfSquareWidth + dy),
-          });
+        element.prop('ports/groups/top-edge/position/name', 'bottom');
+        element.prop('ports/groups/top-edge/position/args', { x, y });
+      } else if (y <= 0 && dx < squareWidth - lastPortPosition.x) {
+        // turning point: from the right edge to the top edge
+        y = 0;
+        x -= dx;
+        console.log(`top: (${x}, ${y})`);
+        if (x >= squareWidth) {
+          x = squareWidth;
         }
+        element.prop('ports/groups/top-edge/position/name', 'top');
+        element.prop('ports/groups/top-edge/position/args', { x, y });
       }
-    }
-    if (edge === 'left' || edge === 'right') {
-      element.prop('ports/groups/top-edge/position/args', { dy: Math.min(halfSquareWidth, Math.max(-halfSquareWidth, dy)) });
-      if (dy >= halfSquareWidth) {
-        if (edge === 'left' && dx > 0) {
-          element.prop('ports/groups/top-edge/position/name', 'bottom');
-          element.prop('ports/groups/top-edge/position/args', {
-            dx: Math.min(halfSquareWidth, -halfSquareWidth + dx),
-            dy: 0,
-          });
+    } else if (edge === 'bottom') {
+      // when the port is on the bottom edge
+      let x = lastPortPosition.x + dx,
+          y = squareWidth;
+      if (x > 0 && x < squareWidth) {
+        // move on the bottom edge
+        console.log(`bottom: (${x}, ${y})`);
+        element.prop('ports/groups/top-edge/position/args', { x, y });
+      } else if (x >= squareWidth && dy < squareWidth - lastPortPosition.y) {
+        // turning point: from the bottom edge to the right edge
+        x = squareWidth;
+        y -= dy;
+        console.log(`right: (${x}, ${y})`);
+        if (y <= 0) {
+          y = 0;
         }
-        if (edge === 'right' && dx < 0) {
-          element.prop('ports/groups/top-edge/position/name', 'bottom');
-          element.prop('ports/groups/top-edge/position/args', {
-            dx: Math.max(-halfSquareWidth, halfSquareWidth + dx),
-            dy: 0,
-          });
+        element.prop('ports/groups/top-edge/position/name', 'right');
+        element.prop('ports/groups/top-edge/position/args', { x, y });
+      } else if (x <= 0 && dy < squareWidth - lastPortPosition.y) {
+        // turning point: from the bottom edge to the left edge
+        x = 0;
+        y -= dy;
+        console.log(`left: (${x}, ${y})`);
+        if (y <= 0) {
+          y = 0;
         }
+        element.prop('ports/groups/top-edge/position/name', 'left');
+        element.prop('ports/groups/top-edge/position/args', { x, y });
       }
-      if (dy <= -halfSquareWidth) {
-        if (edge === 'left' && dx > 0) {
-          element.prop('ports/groups/top-edge/position/name', 'top');
-          element.prop('ports/groups/top-edge/position/args', {
-            dx: Math.min(halfSquareWidth, -halfSquareWidth + dx),
-            dy: 0,
-          });
+    } else if (edge === 'left') {
+      // when the port is on the left edge
+      let x = 0,
+          y = lastPortPosition.y + dy;
+      if (y > 0 && y < squareWidth) {
+        // move on the left edge
+        console.log(`left: (${x}, ${y})`);
+        element.prop('ports/groups/top-edge/position/args', { x, y });
+      } else if (y >= squareWidth && dx > lastPortPosition.x - squareWidth) {
+        // turning point: from the left edge to the bottom edge
+        y = squareWidth;
+        x += lastPortPosition.x + dx;
+        console.log(`bottom: (${x}, ${y})`);
+        if (x >= squareWidth) {
+          x = squareWidth;
         }
-        if (edge === 'right' && dx < 0) {
-          element.prop('ports/groups/top-edge/position/name', 'top');
-          element.prop('ports/groups/top-edge/position/args', {
-            dx: Math.max(-halfSquareWidth, halfSquareWidth + dx),
-            dy: 0,
-          });
+        element.prop('ports/groups/top-edge/position/name', 'bottom');
+        element.prop('ports/groups/top-edge/position/args', { x, y });
+      } else if (y <= 0 && dx > lastPortPosition.x - squareWidth) {
+        // turning point: from the left edge to the top edge
+        y = 0;
+        x += lastPortPosition.x + dx;
+        console.log(`top: (${x}, ${y})`);
+        if (x >= squareWidth) {
+          x = squareWidth;
         }
+        element.prop('ports/groups/top-edge/position/name', 'top');
+        element.prop('ports/groups/top-edge/position/args', { x, y });
       }
     }
   };
 
   const onMouseUp = () => {
+    const { x, y } = element.getPortsPositions('top-edge')['port1'];
+    lastPortPosition = { x, y };
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
   };
@@ -280,7 +332,7 @@ const model = new shapes.standard.Rectangle({
       'top-edge': {
         position: {
           name: 'top',
-          args: { dy: 0 },
+          args: { x: halfSquareWidth, y: 0 },
         },
       },
     },
